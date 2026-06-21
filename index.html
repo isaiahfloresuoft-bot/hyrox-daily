@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Hyrox Daily</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#181614" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Hyrox Daily" />
+<style>
+  :root{
+    --bg:#181614;
+    --surface:#221f1c;
+    --surface-2:#2a2622;
+    --border:#37322c;
+    --text:#f3efe9;
+    --text-secondary:#a39c92;
+    --text-tertiary:#746e65;
+    --coral:#d85a30;
+    --coral-bg:#2b1d15;
+    --coral-text:#f0997b;
+    --teal:#1d9e75;
+    --teal-bg:#13231d;
+    --teal-text:#5dcaa5;
+    --gray-bg:#262320;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--text); font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing:antialiased;}
+  body{
+    padding: calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 24px);
+    min-height: 100vh;
+  }
+  .header{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .app-title{font-size:13px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-secondary); margin:0;}
+  .date-label{font-size:13px; color:var(--text-tertiary); margin:0;}
+
+  .week-tabs{display:flex; gap:6px; margin-bottom:14px;}
+  .week-tab{flex:1; padding:8px 0; text-align:center; border-radius:10px; border:1px solid var(--border); background:var(--surface); font-size:13px; font-weight:600; color:var(--text-secondary);}
+  .week-tab.active{background:var(--surface-2); color:var(--text); border-color:#4a4338;}
+
+  .week-meta{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--text-tertiary); margin-bottom:18px;}
+
+  .day-tabs{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:20px;}
+  .day-tab{display:flex; flex-direction:column; align-items:center; gap:5px; padding:9px 2px; border-radius:10px; border:1px solid var(--border); background:var(--surface);}
+  .day-tab.active{border-color:#4a4338; background:var(--surface-2);}
+  .day-tab .dname{font-size:11.5px; font-weight:600; color:var(--text);}
+  .day-tab .dot{width:7px; height:7px; border-radius:50%;}
+
+  .hero{border-radius:16px; padding:16px 18px; margin-bottom:18px;}
+  .hero.hard{background:var(--coral-bg);}
+  .hero.easy{background:var(--teal-bg);}
+  .hero.rest{background:var(--gray-bg);}
+  .hero-row{display:flex; justify-content:space-between; align-items:flex-start; gap:12px;}
+  .hero-tag{font-size:12px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; margin:0 0 4px;}
+  .hero.hard .hero-tag{color:var(--coral-text);}
+  .hero.easy .hero-tag{color:var(--teal-text);}
+  .hero.rest .hero-tag{color:var(--text-secondary);}
+  .hero-title{font-size:19px; font-weight:600; margin:0; color:var(--text);}
+  .hero-time-label{font-size:12px; color:var(--text-tertiary); margin:0; text-align:right;}
+  .hero-time{font-size:19px; font-weight:600; margin:0; color:var(--text); text-align:right;}
+
+  .section-label{font-size:12px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-secondary); margin:0 0 8px;}
+  .section-row{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;}
+  .cal-total{font-size:13px; color:var(--text-tertiary);}
+
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px 16px; margin-bottom:20px;}
+  .ex-item{display:flex; gap:10px; padding:7px 0; font-size:14.5px; line-height:1.5;}
+  .ex-item:not(:first-child){border-top:1px solid var(--border);}
+  .ex-dot{width:5px; height:5px; border-radius:50%; background:var(--text-tertiary); margin-top:8px; flex-shrink:0;}
+
+  .meal-row{display:flex; gap:14px;}
+  .meal-time-col{display:flex; flex-direction:column; align-items:center; width:58px; flex-shrink:0;}
+  .meal-time{font-size:11.5px; color:var(--text-tertiary); white-space:nowrap;}
+  .meal-node{width:8px; height:8px; border-radius:50%; margin:6px 0; background:var(--text-tertiary); flex-shrink:0;}
+  .meal-node.session{width:10px; height:10px; background:var(--coral);}
+  .meal-line{width:1px; flex:1; background:var(--border); min-height:18px;}
+  .meal-body{padding-bottom:16px; flex:1;}
+  .meal-head{display:flex; justify-content:space-between; gap:8px;}
+  .meal-name{font-size:14.5px; font-weight:600; margin:0 0 2px; color:var(--text);}
+  .meal-cal{font-size:12.5px; color:var(--text-tertiary); white-space:nowrap;}
+  .meal-detail{font-size:13.5px; color:var(--text-secondary); margin:0; line-height:1.5;}
+
+  button{font-family:inherit;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <p class="app-title">Hyrox daily</p>
+  <p class="date-label" id="date-label"></p>
+</div>
+
+<div class="week-tabs" id="week-tabs"></div>
+<div class="week-meta" id="week-meta"></div>
+<div class="day-tabs" id="day-tabs"></div>
+<div id="day-content"></div>
+
+<script>
+var PLAN = [
+  { load:"moderate", mileage:20, focus:"Technique-focused foundational week",
+    days:[
+      {day:"Mon", title:"Full body foundation", tag:"strength", time:"6:30 PM", items:["Goblet squat 4x15 @RPE6","Renegade row 3x12/side @RPE6","Kettlebell swing 4x15 @RPE6","Dead bug 3x12/side @RPE6","Farmer carry 3x60s @RPE6"]},
+      {day:"Tue", title:"Engine intervals", tag:"hard", time:"11:00 AM", items:["4 rounds: Run 1000m @RPE6 + Sled push 50m @RPE6","90s rest between rounds"]},
+      {day:"Wed", title:"Easy run - aerobic base", tag:"easy", time:"6:30 PM", items:["6 km @ 6:00/km","Conversational zone 2"]},
+      {day:"Thu", title:"Lower strength endurance", tag:"strength", time:"11:00 AM", items:["Romanian deadlift 4x12 @RPE6","Bulgarian split squat 3x12/leg @RPE6","Farmer carry 3x60s @RPE6","Plank pull-throughs 3x10/side @RPE6"]},
+      {day:"Fri", title:"Easy run - cadence drills", tag:"easy", time:"6:30 PM", items:["6 km @ 6:30/km","4x20s faster cadence drills"]},
+      {day:"Sat", title:"Brick circuit - short rounds", tag:"hard", time:"6:30 PM", items:["5 rounds: Run 500m + Row 200m + Wall balls 15"]},
+      {day:"Sun", title:"Rest", tag:"rest", time:"-", items:["Full rest day"]}
+    ]},
+  { load:"moderate", mileage:22, focus:"Build aerobic volume and station pairing",
+    days:[
+      {day:"Mon", title:"Full body progression", tag:"strength", time:"6:30 PM", items:["Barbell thruster 4x12 @RPE6.5","Assisted pull-ups 3x8-10 @RPE6","Kettlebell swing 4x15 @RPE6","Military plank 3x45s @RPE6"]},
+      {day:"Tue", title:"1km intervals - station pairings", tag:"hard", time:"11:00 AM", items:["5 rounds: Run 1000m @RPE6.5 + Sled pull 50m @RPE6","90s rest between rounds"]},
+      {day:"Wed", title:"Easy run - aerobic development", tag:"easy", time:"6:30 PM", items:["7 km @ 6:00/km","Conversational zone 2"]},
+      {day:"Thu", title:"Squat/RDL + push/pull", tag:"strength", time:"11:00 AM", items:["Front squat 4x10 @RPE7","Romanian deadlift 4x10 @RPE7","Barbell bent-over row 3x10 @RPE6.5"]},
+      {day:"Fri", title:"Easy run - strides and drills", tag:"easy", time:"6:30 PM", items:["6 km @ 6:00/km","6x20s strides, controlled faster turnover"]},
+      {day:"Sat", title:"Race simulation - short format", tag:"hard", time:"6:30 PM", items:["4 rounds: Run 1000m @RPE7 + Ski erg 1000m @RPE6.5 + Farmer carry 100m @RPE6.5"]},
+      {day:"Sun", title:"Rest", tag:"rest", time:"-", items:["Full rest day"]}
+    ]},
+  { load:"high", mileage:24, focus:"Strength endurance emphasis, longer race sim",
+    days:[
+      {day:"Mon", title:"Full body (progressive)", tag:"strength", time:"6:30 PM", items:["Back squat 4x12 @RPE7","Barbell thruster 4x12 @RPE7","Single-leg RDL 3x12/leg @RPE7","Russian twists 3x20 @RPE6.5"]},
+      {day:"Tue", title:"Sled focus + 1km repeats", tag:"hard", time:"11:00 AM", items:["6 rounds: Run 1000m @RPE7 + Sled push 50m + Sled pull 50m @RPE7","120s rest between rounds"]},
+      {day:"Wed", title:"Recovery run - relaxed aerobic", tag:"easy", time:"6:30 PM", items:["5 km @ 6:18/km, very easy","Walk breaks allowed"]},
+      {day:"Thu", title:"Heavy emphasis + carries", tag:"strength", time:"11:00 AM", items:["Back squat 4x10 @RPE7.5","Sandbag walking lunges 3x20 steps @RPE7","Farmer carry 4x75s @RPE7"]},
+      {day:"Fri", title:"Easy run - aerobic maintenance", tag:"easy", time:"6:30 PM", items:["6 km @ 6:00/km, conversational"]},
+      {day:"Sat", title:"Race simulation - medium format", tag:"hard", time:"6:30 PM", items:["6 rounds: Run 1000m @RPE7 + Sled push 50m + Burpee broad jumps 40m @RPE7"]},
+      {day:"Sun", title:"Rest", tag:"rest", time:"-", items:["Full rest day"]}
+    ]},
+  { load:"deload", mileage:21, focus:"Deload: reduced intensity, technique and recovery",
+    days:[
+      {day:"Mon", title:"Full body (deload)", tag:"strength", time:"6:30 PM", items:["Goblet squat 3x12 @RPE6","Push-ups 3x10-12 @RPE6","Dead bug 3x12/side @RPE6"]},
+      {day:"Tue", title:"Technique EMOM - low volume", tag:"easy", time:"11:00 AM", items:["10 rounds: Run 500m @RPE6 + Sled pull 30m @RPE5.5 + Wall balls 10 @RPE5.5"]},
+      {day:"Wed", title:"Recovery run - easy", tag:"easy", time:"6:30 PM", items:["6 km @ 6:18/km, very easy"]},
+      {day:"Thu", title:"Strength circuit (deload)", tag:"strength", time:"11:00 AM", items:["Step-ups 3x10/leg @RPE6","Dumbbell row 3x12 @RPE6","Superman holds 3x30s @RPE5.5"]},
+      {day:"Fri", title:"Easy run - short duration", tag:"easy", time:"6:30 PM", items:["4 km @ 6:00/km, short and easy"]},
+      {day:"Sat", title:"Skills circuit - reduced volume", tag:"easy", time:"6:30 PM", items:["4 rounds: Run 1500m total (3x500m) @RPE6 + Wall balls 12 + Row 250m"]},
+      {day:"Sun", title:"Rest", tag:"rest", time:"-", items:["Full rest day"]}
+    ]}
+];
+
+var TAG_META = {
+  hard:{ label:"hard day" },
+  strength:{ label:"strength" },
+  easy:{ label:"easy day" },
+  rest:{ label:"rest day" }
+};
+
+var BLOCK_START = new Date(2026, 5, 22); // June 22, 2026 - Week 1 Monday
+
+function mealsFor(tag, sessionTime){
+  var isHard = (tag === "hard" || tag === "strength");
+  var middaySession = sessionTime !== "-" && sessionTime.indexOf("AM") > -1;
+  var eveningSession = sessionTime !== "-" && sessionTime.indexOf("PM") > -1;
+  var meals = [];
+
+  meals.push({ time:"7:00 AM", name:"Breakfast", detail:"Oatmeal 80g with 1 scoop protein powder stirred in, 2 eggs scrambled with spinach + tomato", cal:550 });
+
+  if (middaySession){
+    meals.push({ time:"9:30 AM", name:"Pre-session snack", detail:"Small bowl of oats or banana + half scoop protein powder", cal:200 });
+    meals.push({ time:sessionTime, name:"Session", detail:"Training - lunch shifts to right after", cal:0, isSession:true });
+    meals.push({ time:"1:00 PM", name:"Post-session lunch", detail: isHard ? "Chicken breast 180g over sauteed spinach, onion, tomato, with rice or potato + protein shake" : "Chicken breast 150g over sauteed spinach, onion, tomato, light carb side", cal: isHard ? 700 : 450 });
+  } else {
+    meals.push({ time:"12:30 PM", name:"Lunch", detail: isHard ? "Chicken breast 180g over sauteed spinach, onion, tomato, with rice or potato" : "Chicken breast 150g over sauteed spinach, onion, tomato, light carb side", cal: isHard ? 600 : 450 });
+  }
+
+  meals.push({ time:"3:30 PM", name:"Snack", detail:"Protein shake (1 scoop) + handful of nuts or piece of fruit", cal:250 });
+
+  if (eveningSession){
+    meals.push({ time:"5:30 PM", name:"Pre-session snack", detail:"Light carb - rice cakes, banana, or small oats portion", cal:150 });
+    meals.push({ time:sessionTime, name:"Session", detail:"Training block", cal:0, isSession:true });
+    meals.push({ time:"8:00 PM", name:"Dinner", detail: isHard ? "Ground beef or chicken thigh 180g with onion, tomato, spinach, full carb portion" : "Ground beef or chicken thigh 150g with onion, tomato, spinach, moderate carb portion", cal: isHard ? 650 : 550 });
+  } else {
+    meals.push({ time:"7:30 PM", name:"Dinner", detail:"Ground beef or chicken thigh 150g with onion, tomato, spinach, moderate carb portion", cal: tag==="rest" ? 500 : 550 });
+  }
+
+  return meals;
+}
+
+function startOfDay(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+
+function computeDefaultIndices(){
+  var today = startOfDay(new Date());
+  var start = startOfDay(BLOCK_START);
+  var diffDays = Math.round((today - start) / 86400000);
+  if (diffDays < 0) return { weekIdx:0, dayIdx:0 };
+  if (diffDays > 27) return { weekIdx:3, dayIdx:6 };
+  var weekIdx = Math.floor(diffDays / 7);
+  var dayIdx = diffDays % 7;
+  return { weekIdx:weekIdx, dayIdx:dayIdx };
+}
+
+var defaults = computeDefaultIndices();
+var weekIdx = defaults.weekIdx;
+var dayIdx = defaults.dayIdx;
+
+var weekTabsEl = document.getElementById('week-tabs');
+var weekMetaEl = document.getElementById('week-meta');
+var dayTabsEl = document.getElementById('day-tabs');
+var contentEl = document.getElementById('day-content');
+var dateLabelEl = document.getElementById('date-label');
+
+function renderWeekTabs(){
+  var html = '';
+  for (var i=0;i<4;i++){
+    html += '<button class="week-tab' + (i===weekIdx?' active':'') + '" data-i="'+i+'">Week '+(i+1)+'</button>';
+  }
+  weekTabsEl.innerHTML = html;
+  Array.prototype.forEach.call(weekTabsEl.querySelectorAll('.week-tab'), function(el){
+    el.addEventListener('click', function(){
+      weekIdx = parseInt(el.getAttribute('data-i'));
+      dayIdx = 0;
+      renderAll();
+    });
+  });
+}
+
+function renderDayTabs(){
+  var week = PLAN[weekIdx];
+  var html = '';
+  week.days.forEach(function(d, i){
+    var active = i === dayIdx;
+    var dotColor = d.tag === 'rest' ? 'var(--text-tertiary)' : (d.tag === 'easy' ? 'var(--teal)' : 'var(--coral)');
+    html += '<button class="day-tab' + (active?' active':'') + '" data-i="'+i+'">'
+      + '<span class="dname">'+d.day+'</span>'
+      + '<span class="dot" style="background:'+dotColor+'"></span>'
+      + '</button>';
+  });
+  dayTabsEl.innerHTML = html;
+  Array.prototype.forEach.call(dayTabsEl.querySelectorAll('.day-tab'), function(el){
+    el.addEventListener('click', function(){
+      dayIdx = parseInt(el.getAttribute('data-i'));
+      renderDayTabs();
+      renderDayContent();
+    });
+  });
+}
+
+function renderDayContent(){
+  var week = PLAN[weekIdx];
+  var d = week.days[dayIdx];
+  var meta = TAG_META[d.tag];
+  var meals = mealsFor(d.tag, d.time);
+  var totalCal = meals.reduce(function(s,m){return s+m.cal;}, 0);
+
+  var html = '';
+
+  html += '<div class="hero ' + d.tag + '">'
+    + '<div class="hero-row">'
+    + '<div><p class="hero-tag">'+meta.label+'</p><p class="hero-title">'+d.title+'</p></div>'
+    + '<div><p class="hero-time-label">session time</p><p class="hero-time">'+d.time+'</p></div>'
+    + '</div></div>';
+
+  html += '<p class="section-label">workout</p>';
+  html += '<div class="card">';
+  d.items.forEach(function(item){
+    html += '<div class="ex-item"><span class="ex-dot"></span><span>'+item+'</span></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="section-row"><p class="section-label" style="margin:0;">eating schedule</p><span class="cal-total">~'+totalCal+' kcal today</span></div>';
+
+  html += '<div>';
+  meals.forEach(function(m, i){
+    var isLast = i === meals.length - 1;
+    if (m.isSession){
+      html += '<div class="meal-row">'
+        + '<div class="meal-time-col"><span class="meal-time">'+m.time+'</span><span class="meal-node session"></span>' + (isLast?'':'<div class="meal-line"></div>') + '</div>'
+        + '<div class="meal-body"><p class="meal-name">&#9889; '+m.name+'</p><p class="meal-detail">'+m.detail+'</p></div>'
+        + '</div>';
+      return;
+    }
+    html += '<div class="meal-row">'
+      + '<div class="meal-time-col"><span class="meal-time">'+m.time+'</span><span class="meal-node"></span>' + (isLast?'':'<div class="meal-line"></div>') + '</div>'
+      + '<div class="meal-body"><div class="meal-head"><p class="meal-name">'+m.name+'</p><span class="meal-cal">'+m.cal+' kcal</span></div><p class="meal-detail">'+m.detail+'</p></div>'
+      + '</div>';
+  });
+  html += '</div>';
+
+  contentEl.innerHTML = html;
+}
+
+function renderDateLabel(){
+  var today = new Date();
+  var opts = { weekday:'short', month:'short', day:'numeric' };
+  dateLabelEl.textContent = today.toLocaleDateString('en-US', opts);
+}
+
+function renderWeekMeta(){
+  var week = PLAN[weekIdx];
+  weekMetaEl.innerHTML = week.load + ' load &middot; ' + week.mileage + ' km target &middot; ' + week.focus.toLowerCase();
+}
+
+function renderAll(){
+  renderWeekTabs();
+  renderWeekMeta();
+  renderDayTabs();
+  renderDayContent();
+}
+
+renderDateLabel();
+renderAll();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
