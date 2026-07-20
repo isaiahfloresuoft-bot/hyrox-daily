@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Hyrox Daily</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#181614" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Hyrox Daily" />
+<style>
+  :root{
+    --bg:#181614;
+    --surface:#221f1c;
+    --surface-2:#2a2622;
+    --border:#37322c;
+    --text:#f3efe9;
+    --text-secondary:#a39c92;
+    --text-tertiary:#746e65;
+    --coral:#d85a30;
+    --coral-bg:#2b1d15;
+    --coral-text:#f0997b;
+    --teal:#1d9e75;
+    --teal-bg:#13231d;
+    --teal-text:#5dcaa5;
+    --gray-bg:#262320;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;}
+  body{padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 24px);min-height:100vh;}
+
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .app-title{font-size:13px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-secondary);margin:0;}
+  .date-label{font-size:13px;color:var(--text-tertiary);margin:0;}
+
+  /* Block selector */
+  .block-tabs{display:flex;gap:6px;margin-bottom:14px;}
+  .block-tab{flex:1;padding:7px 0;text-align:center;border-radius:10px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:600;color:var(--text-secondary);}
+  .block-tab.active{background:var(--surface-2);color:var(--text);border-color:#4a4338;}
+
+  .week-tabs{display:flex;gap:6px;margin-bottom:14px;}
+  .week-tab{flex:1;padding:8px 0;text-align:center;border-radius:10px;border:1px solid var(--border);background:var(--surface);font-size:13px;font-weight:600;color:var(--text-secondary);}
+  .week-tab.active{background:var(--surface-2);color:var(--text);border-color:#4a4338;}
+
+  .week-meta{font-size:12.5px;color:var(--text-tertiary);margin-bottom:18px;line-height:1.6;}
+
+  .day-tabs{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:20px;}
+  .day-tab{display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 2px;border-radius:10px;border:1px solid var(--border);background:var(--surface);}
+  .day-tab.active{border-color:#4a4338;background:var(--surface-2);}
+  .day-tab .dname{font-size:11.5px;font-weight:600;color:var(--text);}
+  .day-tab .dot{width:7px;height:7px;border-radius:50%;}
+
+  .hero{border-radius:16px;padding:16px 18px;margin-bottom:18px;}
+  .hero.hard{background:var(--coral-bg);}
+  .hero.easy{background:var(--teal-bg);}
+  .hero.rest{background:var(--gray-bg);}
+  .hero-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .hero-tag{font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin:0 0 4px;}
+  .hero.hard .hero-tag{color:var(--coral-text);}
+  .hero.easy .hero-tag{color:var(--teal-text);}
+  .hero.rest .hero-tag{color:var(--text-secondary);}
+  .hero-title{font-size:19px;font-weight:600;margin:0;color:var(--text);}
+  .hero-time-label{font-size:12px;color:var(--text-tertiary);margin:0;text-align:right;}
+  .hero-time{font-size:19px;font-weight:600;margin:0;color:var(--text);text-align:right;}
+
+  .section-label{font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--text-secondary);margin:0 0 8px;}
+  .section-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+  .cal-total{font-size:13px;color:var(--text-tertiary);}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:20px;}
+  .ex-item{display:flex;gap:10px;padding:7px 0;font-size:14.5px;line-height:1.5;}
+  .ex-item:not(:first-child){border-top:1px solid var(--border);}
+  .ex-dot{width:5px;height:5px;border-radius:50%;background:var(--text-tertiary);margin-top:8px;flex-shrink:0;}
+
+  .meal-row{display:flex;gap:14px;}
+  .meal-time-col{display:flex;flex-direction:column;align-items:center;width:58px;flex-shrink:0;}
+  .meal-time{font-size:11.5px;color:var(--text-tertiary);white-space:nowrap;}
+  .meal-node{width:8px;height:8px;border-radius:50%;margin:6px 0;background:var(--text-tertiary);flex-shrink:0;}
+  .meal-node.session{width:10px;height:10px;background:var(--coral);}
+  .meal-line{width:1px;flex:1;background:var(--border);min-height:18px;}
+  .meal-body{padding-bottom:16px;flex:1;}
+  .meal-head{display:flex;justify-content:space-between;gap:8px;}
+  .meal-name{font-size:14.5px;font-weight:600;margin:0 0 2px;color:var(--text);}
+  .meal-cal{font-size:12.5px;color:var(--text-tertiary);white-space:nowrap;}
+  .meal-detail{font-size:13.5px;color:var(--text-secondary);margin:0;line-height:1.5;}
+
+  button{font-family:inherit;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <p class="app-title">Hyrox daily</p>
+  <p class="date-label" id="date-label"></p>
+</div>
+
+<div class="block-tabs" id="block-tabs"></div>
+<div class="week-tabs" id="week-tabs"></div>
+<div class="week-meta" id="week-meta"></div>
+<div class="day-tabs" id="day-tabs"></div>
+<div id="day-content"></div>
+
+<script>
+// ─── PLAN DATA: 8 WEEKS ───────────────────────────────────────────────
+var BLOCKS = [
+  {
+    label:"Block 1 · Wk 1–4",
+    weeks:[
+      { load:"moderate", mileage:20, focus:"Technique-focused foundational week",
+        days:[
+          {day:"Mon",title:"Full body foundation",tag:"strength",time:"6:30 PM",items:["Goblet squat 4x15 @RPE6","Renegade row 3x12/side @RPE6","Kettlebell swing 4x15 @RPE6","Dead bug 3x12/side @RPE6","Farmer carry 3x60s @RPE6"]},
+          {day:"Tue",title:"Engine intervals",tag:"hard",time:"11:00 AM",items:["4 rounds: Run 1000m @RPE6 + Sled push 50m @RPE6","90s rest between rounds"]},
+          {day:"Wed",title:"Easy run — aerobic base",tag:"easy",time:"6:30 PM",items:["6 km @ 6:00/km","Conversational zone 2"]},
+          {day:"Thu",title:"Lower strength endurance",tag:"strength",time:"11:00 AM",items:["Romanian deadlift 4x12 @RPE6","Bulgarian split squat 3x12/leg @RPE6","Farmer carry 3x60s @RPE6","Plank pull-throughs 3x10/side @RPE6"]},
+          {day:"Fri",title:"Easy run — cadence drills",tag:"easy",time:"6:30 PM",items:["6 km @ 6:30/km","4x20s faster cadence drills"]},
+          {day:"Sat",title:"Brick circuit — short rounds",tag:"hard",time:"6:30 PM",items:["5 rounds: Run 500m + Row 200m + Wall balls 15"]},
+          {day:"Sun",title:"Rest",tag:"rest",time:"-",items:["Full rest day"]}
+        ]},
+      { load:"moderate", mileage:22, focus:"Build aerobic volume and station pairing",
+        days:[
+          {day:"Mon",title:"Full body progression",tag:"strength",time:"6:30 PM",items:["Barbell thruster 4x12 @RPE6.5","Assisted pull-ups 3x8-10 @RPE6","Kettlebell swing 4x15 @RPE6","Military plank 3x45s @RPE6"]},
+          {day:"Tue",title:"1km intervals — station pairings",tag:"hard",time:"11:00 AM",items:["5 rounds: Run 1000m @RPE6.5 + Sled pull 50m @RPE6","90s rest between rounds"]},
+          {day:"Wed",title:"Easy run — aerobic development",tag:"easy",time:"6:30 PM",items:["7 km @ 6:00/km","Conversational zone 2"]},
+          {day:"Thu",title:"Squat/RDL + push/pull",tag:"strength",time:"11:00 AM",items:["Front squat 4x10 @RPE7","Romanian deadlift 4x10 @RPE7","Barbell bent-over row 3x10 @RPE6.5"]},
+          {day:"Fri",title:"Easy run — strides and drills",tag:"easy",time:"6:30 PM",items:["6 km @ 6:00/km","6x20s strides, controlled faster turnover"]},
+          {day:"Sat",title:"Race simulation — short format",tag:"hard",time:"6:30 PM",items:["4 rounds: Run 1000m @RPE7 + Ski erg 1000m @RPE6.5 + Farmer carry 100m @RPE6.5"]},
+          {day:"Sun",title:"Rest",tag:"rest",time:"-",items:["Full rest day"]}
+        ]},
+      { load:"high", mileage:24, focus:"Strength endurance emphasis, longer race sim",
+        days:[
+          {day:"Mon",title:"Full body (progressive)",tag:"strength",time:"6:30 PM",items:["Back squat 4x12 @RPE7","Barbell thruster 4x12 @RPE7","Single-leg RDL 3x12/leg @RPE7","Russian twists 3x20 @RPE6.5"]},
+          {day:"Tue",title:"Sled focus + 1km repeats",tag:"hard",time:"11:00 AM",items:["6 rounds: Run 1000m @RPE7 + Sled push 50m + Sled pull 50m @RPE7","120s rest between rounds"]},
+          {day:"Wed",title:"Recovery run — relaxed aerobic",tag:"easy",time:"6:30 PM",items:["5 km @ 6:18/km, very easy","Walk breaks allowed"]},
+          {day:"Thu",title:"Heavy emphasis + carries",tag:"strength",time:"11:00 AM",items:["Back squat 4x10 @RPE7.5","Sandbag walking lunges 3x20 steps @RPE7","Farmer carry 4x75s @RPE7"]},
+          {day:"Fri",title:"Easy run — aerobic maintenance",tag:"easy",time:"6:30 PM",items:["6 km @ 6:00/km, conversational"]},
+          {day:"Sat",title:"Race simulation — medium format",tag:"hard",time:"6:30 PM",items:["6 rounds: Run 1000m @RPE7 + Sled push 50m + Burpee broad jumps 40m @RPE7"]},
+          {day:"Sun",title:"Rest",tag:"rest",time:"-",items:["Full rest day"]}
+        ]},
+      { load:"deload", mileage:21, focus:"Deload: reduced intensity, technique and recovery",
+        days:[
+          {day:"Mon",title:"Full body (deload)",tag:"strength",time:"6:30 PM",items:["Goblet squat 3x12 @RPE6","Push-ups 3x10-12 @RPE6","Dead bug 3x12/side @RPE6"]},
+          {day:"Tue",title:"Technique EMOM — low volume",tag:"easy",time:"11:00 AM",items:["10 rounds: Run 500m @RPE6 + Sled pull 30m @RPE5.5 + Wall balls 10 @RPE5.5"]},
+          {day:"Wed",title:"Recovery run — easy",tag:"easy",time:"6:30 PM",items:["6 km @ 6:18/km, very easy"]},
+          {day:"Thu",title:"Strength circuit (deload)",tag:"strength",time:"11:00 AM",items:["Step-ups 3x10/leg @RPE6","Dumbbell row 3x12 @RPE6","Superman holds 3x30s @RPE5.5"]},
+          {day:"Fri",title:"Easy run — short duration",tag:"easy",time:"6:30 PM",items:["4 km @ 6:00/km, short and easy"]},
+          {day:"Sat",title:"Skills circuit — reduced volume",tag:"easy",time:"6:30 PM",items:["4 rounds: Run 1500m total (3x500m) @RPE6 + Wall balls 12 + Row 250m"]},
+          {day:"Sun",title:"Rest",tag:"rest",time:"-",items:["Full rest day"]}
+        ]}
+    ]
+  },
+  {
+    label:"Block 2 · Wk 5–8",
+    weeks:[
+      // ── WEEK 5: Moderate-high re-entry, 25km ──
+      { load:"moderate-high", mileage:25, focus:"Re-entry after deload — heavier loads, longer carries",
+        days:[
+          {day:"Mon",title:"Full body — strength re-entry",tag:"strength",time:"6:30 PM",items:["Back squat 4x10 @RPE7.5","Barbell thruster 4x10 @RPE7.5","Weighted pull-ups or assisted 4x8 @RPE7","Pallof press 3x12/side @RPE6.5","Farmer carry 3x75s @RPE7"]},
+          {day:"Tue",title:"1km repeats + extended sled",tag:"hard",time:"11:00 AM",items:["6 rounds: Run 1000m @RPE7 + Sled push 60m @RPE7 + Sled pull 60m @RPE7","90s rest between rounds"]},
+          {day:"Wed",title:"Aerobic run — tempo segment",tag:"easy",time:"6:30 PM",items:["8 km total: 5 km easy @6:00/km + 3 km @5:30/km tempo","Controlled effort, nose-breathe the easy sections"]},
+          {day:"Thu",title:"Lower strength — unilateral focus",tag:"strength",time:"11:00 AM",items:["Bulgarian split squat 4x10/leg @RPE7.5","Single-leg RDL 3x10/leg @RPE7","Sandbag walking lunges 3x24 steps @RPE7","Farmer carry 4x75s @RPE7.5"]},
+          {day:"Fri",title:"Easy run — aerobic flush",tag:"easy",time:"6:30 PM",items:["6 km @ 6:00/km, conversational","4x30s strides at end"]},
+          {day:"Sat",title:"Race simulation — extended rounds",tag:"hard",time:"6:30 PM",items:["7 rounds: Run 1000m @RPE7 + Ski erg 1000m @RPE7 + Burpee broad jumps 40m @RPE7","2 min transition between stations"]},
+          {day:"Sun",title:"Rest",tag:"rest",time:"-",items:["Full rest day"]}
+        ]},
+      // ── WEEK 6: High load, 27km ──
+      { load:"high", mileage:27, focus:"Peak aerobic volume — race-pace station intensity",
+        days:[
+          {day:"Mon",title:"Full body — heavy compound",tag:"strength",time:"6:30 PM",items:["Back squat 5x8 @RPE8","Weighted pull-ups 4x6 @RPE8","Barbell thruster 4x8 @RPE7.5","Single-leg RDL 3x10/leg @RPE7.5","Dead bug 3x12/side @RPE6"]},
+          {day:"Tue",title:"1km repeats — race pace pressure",tag:"hard",time:"11:00 AM",items:["7 rounds: Run 1000m @RPE7.5 + Sled push 60m @RPE7.5","60s standing rest only","Focus: consistent splits, controlled breathing"]},
+          {day:"Wed",title:"Moderate run — aerobic development",tag:"easy",time:"6:30 PM",items:["9 km @ 5:45/km, steady effort","Zone 2 to low zone 3","No walk breaks"]},
+          {day:"Thu",title:"Lower strength — max carries",tag:"strength",time:"11:00 AM",items:["Romanian deadlift 4x10 @RPE8","Sandbag walking lunges 4x24 steps @RPE7.5","Farmer carry 5x75s @RPE8","Sled push 3x40m @RPE7.5 — technique emphasis"]},
+          {day:"Fri",title:"Easy run — active recovery",tag:"easy",time:"6:30 PM",items:["6 km @ 6:10/km, easy","Cadence focus: aim for 170+ spm"]},
+          {day:"Sat",title:"Race simulation — full format",tag:"hard",time:"6:30 PM",items:["8 rounds: Run 1000m @RPE7.5 + Ski erg 1000m @RPE7 + Farmer carry 100m @RPE7.5 + Wall balls 15 @RPE7","Target continuous effort — minimal rest between stations, 90s between rounds"]},
+          {day:"Sun",title:"Rest",tag:"rest",time:"-",items:["Full rest day"]}
+        ]},
+      // ── WEEK 7: Peak load, 28km ──
+      { load:"peak", mileage:28, focus:"Peak week — race-pace intensity, max strength endurance",
+        days:[
+          {day:"Mon",title:"Full body — peak strength",tag:"strength",time:"6:30 PM",items:["Back squat 5x6 @RPE8.5","Weighted pull-ups 4x5 @RPE8.5","Barbell thruster 4x8 @RPE8","Farmer carry 4x90s @RPE8","Plank pull-throughs 3x12/side @RPE7"]},
+          {day:"Tue",title:"1200m repeats — near race pace",tag:"hard",time:"11:00 AM",items:["6 rounds: Run 1200m @RPE8 + Sled push 60m @RPE8 + Sled pull 60m @RPE8","90s rest between rounds","This is as hard as it gets — full focus"]},
+          {day:"Wed",title:"Recovery run — easy flush",tag:"easy",time:"6:30 PM",items:["5 km @ 6:18/km, very easy","Legs should feel heavy — that's fine","Walk if needed"]},
+          {day:"Thu",title:"Lower strength — strength endurance peak",tag:"strength",time:"11:00 AM",items:["Bulgarian split squat 4x10/leg @RPE8","Sandbag walking lunges 4x28 steps @RPE8","Farmer carry 5x90s @RPE8","Box step-ups 3x12/leg @RPE7.5"]},
+          {day:"Fri",title:"Shakeout run — controlled",tag:"easy",time:"6:30 PM",items:["6 km @ 5:50/km, controlled but crisp","6x20s strides at Hyrox run pace","Feel fast without digging deep"]},
+          {day:"Sat",title:"Race simulation — Hyrox-spec format",tag:"hard",time:"6:30 PM",items:["8 rounds: Run 1000m @RPE8 + Sled push 50m @race weight + Ski erg 1000m + Burpee broad jumps 40m + Wall balls 20 @race weight","This is your dress rehearsal — go through the full station order as close to race day as possible"]},
+          {day:"Sun",title:"Rest",tag:"rest",time:"-",items:["Full rest day. Prioritise sleep and food."]}
+        ]},
+      // ── WEEK 8: Deload 2, 22km ──
+      { load:"deload", mileage:22, focus:"Second deload — recover from peak week, reset for final block",
+        days:[
+          {day:"Mon",title:"Full body — deload strength",tag:"strength",time:"6:30 PM",items:["Back squat 3x8 @RPE6.5","Barbell thruster 3x8 @RPE6.5","Pull-ups 3x6 @RPE6","Dead bug 3x12/side @RPE5.5","Keep it crisp and short — no grinding"]},
+          {day:"Tue",title:"Technique intervals — low volume",tag:"easy",time:"11:00 AM",items:["5 rounds: Run 1000m @RPE6 + Sled push 40m @RPE6","Full 2 min rest between rounds","Focus on form — clean station transitions, tall running posture"]},
+          {day:"Wed",title:"Easy run — aerobic maintenance",tag:"easy",time:"6:30 PM",items:["6 km @ 6:10/km, easy and relaxed","Conversational effort only"]},
+          {day:"Thu",title:"Strength circuit — deload full body",tag:"strength",time:"11:00 AM",items:["Goblet squat 3x10 @RPE6","Romanian deadlift 3x10 @RPE6","Farmer carry 3x60s @RPE6","Plank holds 3x45s @RPE5.5"]},
+          {day:"Fri",title:"Easy run — short flush",tag:"easy",time:"6:30 PM",items:["4 km @ 6:10/km, very easy","4x20s strides at comfortable pace","Legs should feel fresh leaving this run"]},
+          {day:"Sat",title:"Race sim — reduced volume skills",tag:"easy",time:"6:30 PM",items:["4 rounds: Run 1000m @RPE6.5 + Ski erg 500m @RPE6 + Wall balls 12 @RPE6","Focus: smooth transitions, don't chase pace","Block 2 complete — 7 weeks to race day"]},
+          {day:"Sun",title:"Rest",tag:"rest",time:"-",items:["Full rest day","Reflect on progress — 8 weeks in, building well"]}
+        ]}
+    ]
+  }
+];
+
+var TAG_META = {
+  hard:{ label:"hard day" },
+  strength:{ label:"strength" },
+  easy:{ label:"easy day" },
+  rest:{ label:"rest day" }
+};
+
+var BLOCK_START = new Date(2026, 5, 22); // June 22, 2026
+
+function mealsFor(tag, sessionTime){
+  var isHard = (tag === "hard" || tag === "strength");
+  var middaySession = sessionTime !== "-" && sessionTime.indexOf("AM") > -1;
+  var eveningSession = sessionTime !== "-" && sessionTime.indexOf("PM") > -1;
+  var meals = [];
+
+  meals.push({ time:"7:00 AM", name:"Breakfast", detail:"Oatmeal 80g with 1 scoop protein powder stirred in, 2 eggs scrambled with spinach + tomato", cal:550 });
+
+  if (middaySession){
+    meals.push({ time:"9:30 AM", name:"Pre-session snack", detail:"Small bowl of oats or banana + half scoop protein powder", cal:200 });
+    meals.push({ time:sessionTime, name:"Session", detail:"Training — lunch shifts to right after", cal:0, isSession:true });
+    meals.push({ time:"1:00 PM", name:"Post-session lunch", detail: isHard ? "Chicken breast 180g over sautéed spinach, onion, tomato, with rice or potato + protein shake" : "Chicken breast 150g over sautéed spinach, onion, tomato, light carb side", cal: isHard ? 700 : 450 });
+  } else {
+    meals.push({ time:"12:30 PM", name:"Lunch", detail: isHard ? "Chicken breast 180g over sautéed spinach, onion, tomato, with rice or potato" : "Chicken breast 150g over sautéed spinach, onion, tomato, light carb side", cal: isHard ? 600 : 450 });
+  }
+
+  meals.push({ time:"3:30 PM", name:"Snack", detail:"Protein shake (1 scoop) + handful of nuts or piece of fruit", cal:250 });
+
+  if (eveningSession){
+    meals.push({ time:"5:30 PM", name:"Pre-session snack", detail:"Light carb — rice cakes, banana, or small oats portion", cal:150 });
+    meals.push({ time:sessionTime, name:"Session", detail:"Training block", cal:0, isSession:true });
+    meals.push({ time:"8:00 PM", name:"Dinner", detail: isHard ? "Ground beef or chicken thigh 180g with onion, tomato, spinach, full carb portion" : "Ground beef or chicken thigh 150g with onion, tomato, spinach, moderate carb portion", cal: isHard ? 650 : 550 });
+  } else {
+    meals.push({ time:"7:30 PM", name:"Dinner", detail:"Ground beef or chicken thigh 150g with onion, tomato, spinach, moderate carb portion", cal: tag==="rest" ? 500 : 550 });
+  }
+
+  return meals;
+}
+
+function startOfDay(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+
+function computeDefaultIndices(){
+  var today = startOfDay(new Date());
+  var start = startOfDay(BLOCK_START);
+  var diffDays = Math.round((today - start) / 86400000);
+  if (diffDays < 0) return { blockIdx:0, weekIdx:0, dayIdx:0 };
+  var totalWeek = Math.floor(diffDays / 7);
+  if (totalWeek > 7) totalWeek = 7;
+  var blockIdx = totalWeek < 4 ? 0 : 1;
+  var weekIdx = totalWeek < 4 ? totalWeek : totalWeek - 4;
+  var dayIdx = diffDays % 7;
+  return { blockIdx:blockIdx, weekIdx:weekIdx, dayIdx:dayIdx };
+}
+
+var defaults = computeDefaultIndices();
+var blockIdx = defaults.blockIdx;
+var weekIdx = defaults.weekIdx;
+var dayIdx = defaults.dayIdx;
+
+var blockTabsEl = document.getElementById('block-tabs');
+var weekTabsEl = document.getElementById('week-tabs');
+var weekMetaEl = document.getElementById('week-meta');
+var dayTabsEl = document.getElementById('day-tabs');
+var contentEl = document.getElementById('day-content');
+var dateLabelEl = document.getElementById('date-label');
+
+function renderBlockTabs(){
+  var html = '';
+  BLOCKS.forEach(function(b, i){
+    html += '<button class="block-tab'+(i===blockIdx?' active':'')+'" data-i="'+i+'">'+b.label+'</button>';
+  });
+  blockTabsEl.innerHTML = html;
+  Array.prototype.forEach.call(blockTabsEl.querySelectorAll('.block-tab'), function(el){
+    el.addEventListener('click', function(){
+      blockIdx = parseInt(el.getAttribute('data-i'));
+      weekIdx = 0; dayIdx = 0;
+      renderAll();
+    });
+  });
+}
+
+function renderWeekTabs(){
+  var weeks = BLOCKS[blockIdx].weeks;
+  var globalOffset = blockIdx * 4;
+  var html = '';
+  weeks.forEach(function(w, i){
+    html += '<button class="week-tab'+(i===weekIdx?' active':'')+'" data-i="'+i+'">Wk '+(globalOffset+i+1)+'</button>';
+  });
+  weekTabsEl.innerHTML = html;
+  Array.prototype.forEach.call(weekTabsEl.querySelectorAll('.week-tab'), function(el){
+    el.addEventListener('click', function(){
+      weekIdx = parseInt(el.getAttribute('data-i'));
+      dayIdx = 0;
+      renderAll();
+    });
+  });
+}
+
+function renderDayTabs(){
+  var week = BLOCKS[blockIdx].weeks[weekIdx];
+  var html = '';
+  week.days.forEach(function(d, i){
+    var active = i === dayIdx;
+    var dotColor = d.tag === 'rest' ? 'var(--text-tertiary)' : (d.tag === 'easy' ? 'var(--teal)' : 'var(--coral)');
+    html += '<button class="day-tab'+(active?' active':'')+'" data-i="'+i+'">'
+      + '<span class="dname">'+d.day+'</span>'
+      + '<span class="dot" style="background:'+dotColor+'"></span>'
+      + '</button>';
+  });
+  dayTabsEl.innerHTML = html;
+  Array.prototype.forEach.call(dayTabsEl.querySelectorAll('.day-tab'), function(el){
+    el.addEventListener('click', function(){
+      dayIdx = parseInt(el.getAttribute('data-i'));
+      renderDayTabs();
+      renderDayContent();
+    });
+  });
+}
+
+function renderDayContent(){
+  var week = BLOCKS[blockIdx].weeks[weekIdx];
+  var d = week.days[dayIdx];
+  var meta = TAG_META[d.tag];
+  var meals = mealsFor(d.tag, d.time);
+  var totalCal = meals.reduce(function(s,m){return s+m.cal;},0);
+
+  var html = '';
+
+  html += '<div class="hero '+d.tag+'">'
+    + '<div class="hero-row">'
+    + '<div><p class="hero-tag">'+meta.label+'</p><p class="hero-title">'+d.title+'</p></div>'
+    + '<div><p class="hero-time-label">session time</p><p class="hero-time">'+d.time+'</p></div>'
+    + '</div></div>';
+
+  html += '<p class="section-label">workout</p>';
+  html += '<div class="card">';
+  d.items.forEach(function(item){
+    html += '<div class="ex-item"><span class="ex-dot"></span><span>'+item+'</span></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="section-row"><p class="section-label" style="margin:0;">eating schedule</p><span class="cal-total">~'+totalCal+' kcal today</span></div>';
+
+  html += '<div>';
+  meals.forEach(function(m, i){
+    var isLast = i === meals.length-1;
+    if (m.isSession){
+      html += '<div class="meal-row">'
+        + '<div class="meal-time-col"><span class="meal-time">'+m.time+'</span><span class="meal-node session"></span>'+(isLast?'':'<div class="meal-line"></div>')+'</div>'
+        + '<div class="meal-body"><p class="meal-name">&#9889; '+m.name+'</p><p class="meal-detail">'+m.detail+'</p></div>'
+        + '</div>';
+      return;
+    }
+    html += '<div class="meal-row">'
+      + '<div class="meal-time-col"><span class="meal-time">'+m.time+'</span><span class="meal-node"></span>'+(isLast?'':'<div class="meal-line"></div>')+'</div>'
+      + '<div class="meal-body"><div class="meal-head"><p class="meal-name">'+m.name+'</p><span class="meal-cal">'+m.cal+' kcal</span></div><p class="meal-detail">'+m.detail+'</p></div>'
+      + '</div>';
+  });
+  html += '</div>';
+
+  contentEl.innerHTML = html;
+}
+
+function renderWeekMeta(){
+  var week = BLOCKS[blockIdx].weeks[weekIdx];
+  weekMetaEl.textContent = week.load+' load \u00b7 '+week.mileage+' km target \u00b7 '+week.focus.toLowerCase();
+}
+
+function renderDateLabel(){
+  var today = new Date();
+  dateLabelEl.textContent = today.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+}
+
+function renderAll(){
+  renderBlockTabs();
+  renderWeekTabs();
+  renderWeekMeta();
+  renderDayTabs();
+  renderDayContent();
+}
+
+renderDateLabel();
+renderAll();
+
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
